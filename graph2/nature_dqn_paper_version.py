@@ -128,7 +128,7 @@ class DQN(object):
 class ExplorationExploitationScheduler(object):
     """Determines an action according to an epsilon greedy strategy with annealing epsilon"""
     def __init__(self, DQN, n_actions, eps_initial=1, eps_final=0.1, eps_final_frame=0.01, 
-                 eps_evaluation=0.0, eps_annealing_frames=1000000, 
+                 eps_evaluation=0.05, eps_annealing_frames=1000000, 
                  replay_memory_start_size=50000, max_frames=25000000):
         """
         Args:
