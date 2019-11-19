@@ -559,6 +559,9 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
         use_actions = actions[min(x-SPLIT_SIZE,0):x]
         use_rewards = y[min(x-SPLIT_SIZE,0):x]
 
+        with open('output_file.dat', 'a') as of:
+            print(use_states.shape, file=of)
+
         loss, _ = session.run([main_dqn.loss, main_dqn.update], 
                               feed_dict={main_dqn.input:use_states, 
                                          main_dqn.target_q:use_rewards,
