@@ -26,7 +26,7 @@ NETW_UPDATE_FREQ = 10000         # Number of chosen actions between updating the
                                  # DeepMind code, it is clearly measured in the number
                                  # of actions the agent choses
 DISCOUNT_FACTOR = 0.99           # gamma in the Bellman equation
-REPLAY_MEMORY_START_SIZE = 50000 # Number of completely random actions, 
+REPLAY_MEMORY_START_SIZE = 50000  # Number of completely random actions, 
                                  # before the agent starts learning
 MAX_FRAMES = 30000000            # Total number of frames the agent sees 
 MEMORY_SIZE = 1000000            # Number of transitions stored in the replay memory
@@ -328,20 +328,34 @@ class EpisodicReplayMemory(object):
         #     self.new_states[i] = self._get_state(idx)
         
         episode = random.sample(self.episode_memory, 1)[0]
+        episode = np.array(episode)
+        # print(episode[0])
+        #exit()
+        #print(episode.shape)
 
         # [(state,action,reward,terminal),]......
+        grouped_states = np.stack(episode[:,0])
+        # print(grouped_states.shape)
+        all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
+       
 
-        states =  np.squeeze(np.stack(episode[:,0]),axis=1)
+        states = []
+
+        for s in range(self.agent_history_length-1,len(all_states)):
+            states.append(all_states[s-np.arange(self.agent_history_length)])
+            # print(s-np.arange(self.agent_history_length))
+
         next_states = states[1:]    
-        cur_states = states[:-1]
+        cur_states = states #[:-1]
 
-        actions = episode[:,1]
-        next_rewards = episode[:,2]
+
+        actions = episode[:,1][self.agent_history_length-1:]
+        next_rewards = episode[:,2][self.agent_history_length-1:]
         
 
         
 
-        return np.transpose(self.states, axes=(0, 2, 3, 1)), actions, rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
+        return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
         # return np.transpose(self.states, axes=(0, 2, 3, 1)), self.actions[self.indices], self.rewards[self.indices], np.transpose(self.new_states, axes=(0, 2, 3, 1)), self.terminal_flags[self.indices]
 
@@ -464,7 +478,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     # The target network estimates the Q-values (in the next state s', new_states is passed!) 
     # for every transition in the minibatch
     q_vals = session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states})
-    double_q = q_vals[range(batch_size), arg_q_max]
+    #double_q = q_vals[range(new_states.shape[0]), arg_q_max]
     # Bellman equation. Multiplication with (1-terminal_flags) makes sure that 
     # if the game is over, targetQ=rewards
    # target_q = rewards + (gamma*double_q * (1-terminal_flags))
@@ -475,15 +489,17 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
   
               # q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
               # q_tilde = q_tilde_temp.numpy()
-    q_tilde = q_vals.numpy()
+    q_tilde = q_vals
+    # print(q_tilde.shape)
     T = len(states)
+    # print(T)
     y = np.zeros(T)
     y[-1] = rewards[-1]
 
-    for k in range(T-1,0,-1): #T-2
+    for k in range(T-2,0,-1): #T-2
         cur_action = actions[k]
         q_tilde[k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[k][cur_action]
-        y[k] = next_rewards[k] + gamma * np.max(q_tilde[k,])
+        y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
 
    
 
