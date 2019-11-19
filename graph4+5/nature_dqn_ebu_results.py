@@ -47,6 +47,8 @@ PATH = "output/"                 # Gifs and checkpoints will be saved here
 SUMMARIES = "summaries"          # logdir for tensorboard
 RUNID = 'run_1'
 
+SPLIT_SIZE = 100
+
 class FrameProcessor(object):
     """Resizes and converts RGB Atari frames to grayscale"""
     def __init__(self, frame_height=84, frame_width=84):
@@ -532,12 +534,31 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
 
     # Gradient descend step to update the parameters of the main network
-    loss, _ = session.run([main_dqn.loss, main_dqn.update], 
-                          feed_dict={main_dqn.input:states, 
-                                     main_dqn.target_q:y,
-                                     #target_q, 
-                                     main_dqn.action:actions})
-    return loss
+    loss_total = 0
+    counter = 0
+
+    # states = np.split(states, SPLIT_SIZE)
+    # y = np.split(y, SPLIT_SIZE)
+    # actions = np.split(actions, SPLIT_SIZE)
+
+
+    for x in range(len(states),0,-SPLIT_SIZE):
+
+        use_states = states[min(x-SPLIT_SIZE,0):x]
+        use_actions = actions[min(x-SPLIT_SIZE,0):x]
+        use_rewards = y[min(x-SPLIT_SIZE,0):x]
+
+        loss, _ = session.run([main_dqn.loss, main_dqn.update], 
+                              feed_dict={main_dqn.input:use_states, 
+                                         main_dqn.target_q:use_rewards,
+                                         #target_q, 
+                                         main_dqn.action:use_actions})
+        loss_total+=loss
+        counter+=1
+
+    return loss_total/counter
+
+
 
 class TargetNetworkUpdater(object):
     """Copies the parameters of the main DQN to the target DQN"""
