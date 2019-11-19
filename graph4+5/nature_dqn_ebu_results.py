@@ -47,7 +47,7 @@ PATH = "output/"                 # Gifs and checkpoints will be saved here
 SUMMARIES = "summaries"          # logdir for tensorboard
 RUNID = 'run_1'
 
-SPLIT_SIZE = 1000
+SPLIT_SIZE = 500
 
 class FrameProcessor(object):
     """Resizes and converts RGB Atari frames to grayscale"""
