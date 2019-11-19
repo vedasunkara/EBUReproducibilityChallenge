@@ -244,7 +244,7 @@ class EpisodicReplayMemory(object):
         self.count = 0
         self.current = 0
 
-        self.episode_memory=[]
+        self.episode_memory=[[] for _ in range(self.size)]
         self.episode_counter = 0
         
         # Pre-allocate memory
@@ -281,9 +281,9 @@ class EpisodicReplayMemory(object):
 
 
         index = self.episode_counter % self.size
-        print("index: ", index)
-        print("epsiode memory length: ", len(self.episode_memory))
-        self.episode_memory[index].append(np.array(frame,action,reward,terminal))
+        # print("index: ", index)
+        # print("epsiode memory length: ", len(self.episode_memory))
+        self.episode_memory[index].append(np.array([frame,action,reward,terminal]))
         self.actions[self.current] = action
         self.frames[self.current, ...] = frame
         self.rewards[self.current] = reward
