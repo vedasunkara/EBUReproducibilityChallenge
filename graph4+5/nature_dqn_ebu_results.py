@@ -476,10 +476,21 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     # The main network estimates which action is best (in the next 
     # state s', new_states is passed!) 
     # for every transition in the minibatch
-    arg_q_max = session.run(main_dqn.best_action, feed_dict={main_dqn.input:new_states})
+
+    
+
+    q_vals_all = []
+
+
+    for x in range(len(new_states),0,-SPLIT_SIZE):
+        q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[min(x-SPLIT_SIZE,0):x]}))
+
+    q_tilde = np.concatenate(q_vals_all,axis=0)
+    
+    #arg_q_max = session.run(main_dqn.best_action, feed_dict={main_dqn.input:new_states})
     # The target network estimates the Q-values (in the next state s', new_states is passed!) 
     # for every transition in the minibatch
-    q_vals = session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states})
+    
     #double_q = q_vals[range(new_states.shape[0]), arg_q_max]
     # Bellman equation. Multiplication with (1-terminal_flags) makes sure that 
     # if the game is over, targetQ=rewards
@@ -491,7 +502,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
   
               # q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
               # q_tilde = q_tilde_temp.numpy()
-    q_tilde = q_vals
+    # q_tilde = q_vals
     # print(q_tilde.shape)
     T = len(states)
     # print(T)
