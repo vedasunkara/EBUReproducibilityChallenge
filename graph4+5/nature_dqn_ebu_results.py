@@ -262,10 +262,10 @@ class EpisodicReplayMemory(object):
 
     def add_episode(self):
         self.episode_counter+=1
-        if self.episode_counter < self.memory_size:
+        if self.episode_counter < self.size:
           self.episode_counter.append([])
         else:
-           self.episode_memory[self.num_episodes % self.memory_size] = []
+           self.episode_memory[self.num_episodes % self.size] = []
         
     def add_experience(self, action, frame, reward, terminal):
         """
