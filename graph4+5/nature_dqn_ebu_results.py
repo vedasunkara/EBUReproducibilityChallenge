@@ -281,6 +281,8 @@ class EpisodicReplayMemory(object):
 
 
         index = self.episode_counter % self.size
+        print("index: ", index)
+        print("epsiode memory length: ", len(self.episode_memory))
         self.episode_memory[index].append(np.array(frame,action,reward,terminal))
         self.actions[self.current] = action
         self.frames[self.current, ...] = frame
