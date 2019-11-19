@@ -473,17 +473,22 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     #states, actions, rewards, new_states, terminal_flags = replay_memory.get_minibatch()    
     states, actions, rewards, new_states = replay_memory.get_minibatch()    
 
+
     # The main network estimates which action is best (in the next 
     # state s', new_states is passed!) 
     # for every transition in the minibatch
-
+    with open('output_file.dat', 'a') as of:
+        print(states.shape, file=of)
     
 
     q_vals_all = []
 
 
     for x in range(len(new_states),0,-SPLIT_SIZE):
-        q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[min(x-SPLIT_SIZE,0):x]}))
+        #print(new_states[max(x-SPLIT_SIZE,0):x].shape)
+        with open('output_file.dat', 'a') as of:
+           print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
+        q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
 
     q_tilde = np.concatenate(q_vals_all,axis=0)
     
@@ -555,12 +560,12 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
     for x in range(len(states),0,-SPLIT_SIZE):
 
-        use_states = states[min(x-SPLIT_SIZE,0):x]
-        use_actions = actions[min(x-SPLIT_SIZE,0):x]
-        use_rewards = y[min(x-SPLIT_SIZE,0):x]
+        use_states = states[max(x-SPLIT_SIZE,0):x]
+        use_actions = actions[max(x-SPLIT_SIZE,0):x]
+        use_rewards = y[max(x-SPLIT_SIZE,0):x]
 
         with open('output_file.dat', 'a') as of:
-            print(use_states.shape, file=of)
+            print(use_states.shape)
 
         loss, _ = session.run([main_dqn.loss, main_dqn.update], 
                               feed_dict={main_dqn.input:use_states, 
