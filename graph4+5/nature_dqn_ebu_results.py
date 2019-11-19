@@ -280,7 +280,7 @@ class EpisodicReplayMemory(object):
             raise ValueError('Dimension of frame is wrong!')
 
 
-        index = self.num_episodes % self.memory_size
+        index = self.episode_counter % self.size
         self.episode_memory[index].append(np.array(frame,action,reward,terminal))
         self.actions[self.current] = action
         self.frames[self.current, ...] = frame
