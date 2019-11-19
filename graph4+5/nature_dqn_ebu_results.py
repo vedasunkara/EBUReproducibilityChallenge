@@ -263,7 +263,7 @@ class EpisodicReplayMemory(object):
     def add_episode(self):
         self.episode_counter+=1
         if self.episode_counter < self.size:
-          self.episode_counter.append([])
+          self.episode_memory.append([])
         else:
            self.episode_memory[self.num_episodes % self.size] = []
         
