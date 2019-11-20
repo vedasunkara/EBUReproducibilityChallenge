@@ -26,7 +26,7 @@ NETW_UPDATE_FREQ = 10000         # Number of chosen actions between updating the
                                  # DeepMind code, it is clearly measured in the number
                                  # of actions the agent choses
 DISCOUNT_FACTOR = 0.99           # gamma in the Bellman equation
-REPLAY_MEMORY_START_SIZE = 1000 #50000  # Number of completely random actions, 
+REPLAY_MEMORY_START_SIZE = 50000  # Number of completely random actions, 
                                  # before the agent starts learning
 MAX_FRAMES = 30000000            # Total number of frames the agent sees 
 MEMORY_SIZE = 1000000            # Number of transitions stored in the replay memory
@@ -323,20 +323,14 @@ class EpisodicReplayMemory(object):
         if self.count < self.agent_history_length:
             raise ValueError('Not enough memories to get a minibatch')
         
-        # self._get_valid_indices()
-            
-        # for i, idx in enumerate(self.indices):
-        #     self.states[i] = self._get_state(idx - 1)
-        #     self.new_states[i] = self._get_state(idx)
-        
         episode = []
         all_states = []
         while episode == [] or len(all_states) < 4:
             episode = np.array(random.sample(self.episode_memory, 1)[0])
             all_states = np.stack(episode[:,0])
 
-        #all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
-        print("all states length", len(all_states))
+
+        #print("all states length", len(all_states))
         
         states = []
 
@@ -344,10 +338,10 @@ class EpisodicReplayMemory(object):
             states.append(all_states[s-np.arange(self.agent_history_length)])
 
         
-        print("length of states", len(states))
+        #print("length of states", len(states))
         states = np.stack(states,axis=0)
 
-        print("length of states (post stacking)", len(states))
+        #print("length of states (post stacking)", len(states))
 
         next_states = states[1:]    
         cur_states = states #[:-1]
@@ -356,9 +350,7 @@ class EpisodicReplayMemory(object):
         actions = episode[:,1][self.agent_history_length-1:]
         next_rewards = episode[:,2][self.agent_history_length-1:]
         
-        print("next states length", len(next_states))
-        
-        # print("curr states shape", cur_states.shape)
+        #print("next states length", len(next_states))
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
 def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1.0):
