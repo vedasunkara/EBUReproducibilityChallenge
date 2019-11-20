@@ -347,6 +347,7 @@ class EpisodicReplayMemory(object):
         print("length of states", len(states))
         states = np.stack(states,axis=0)
 
+        print("length of states (post stacking)", len(states))
 
         next_states = states[1:]    
         cur_states = states #[:-1]
