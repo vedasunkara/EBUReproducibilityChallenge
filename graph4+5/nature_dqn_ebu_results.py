@@ -481,13 +481,13 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     #     print(states.shape, file=of)
     
 
-    print("Running on episode of length",len(states))
+    # print("Running on episode of length",len(states))
 
     q_vals_all = []
 
 
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
-        print("generating q # ",i)
+        # print("generating q # ",i)
         #print(new_states[max(x-SPLIT_SIZE,0):x].shape)
         # with open('output_file.dat', 'a') as of:
         #    print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
@@ -537,14 +537,14 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     # actions = np.split(actions, SPLIT_SIZE)
 
 
-    print("Training...")
+    # print("Training...")
     for i,x in enumerate(range(len(states),0,-SPLIT_SIZE)):
 
         use_states = states[max(x-SPLIT_SIZE,0):x]
         use_actions = actions[max(x-SPLIT_SIZE,0):x]
         use_rewards = y[max(x-SPLIT_SIZE,0):x]
 
-        print("training # ",i,len(use_rewards))
+        # print("training # ",i,len(use_rewards))
 
         # with open('output_file.dat', 'a') as of:
         #     print(use_states.shape)
@@ -557,7 +557,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
         loss_total+=loss
         counter+=1
 
-    print("Resulting Loss",loss_total/counter)
+    # print("Resulting Loss",loss_total/counter)
 
     return loss_total/counter
 
