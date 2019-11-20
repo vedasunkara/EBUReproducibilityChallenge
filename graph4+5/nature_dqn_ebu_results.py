@@ -344,7 +344,7 @@ class EpisodicReplayMemory(object):
             states.append(all_states[s-np.arange(self.agent_history_length)])
 
         
-
+        print("length of states", len(states))
         states = np.stack(states,axis=0)
 
 
