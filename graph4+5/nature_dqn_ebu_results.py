@@ -360,7 +360,7 @@ class EpisodicReplayMemory(object):
         
 
         
-
+        print("curr states shape", cur_states.shape)
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards,None #np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
         # return np.transpose(self.states, axes=(0, 2, 3, 1)), self.actions[self.indices], self.rewards[self.indices], np.transpose(self.new_states, axes=(0, 2, 3, 1)), self.terminal_flags[self.indices]
