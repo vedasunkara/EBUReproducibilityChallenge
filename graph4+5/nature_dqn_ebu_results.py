@@ -330,28 +330,20 @@ class EpisodicReplayMemory(object):
         #     self.new_states[i] = self._get_state(idx)
         
         episode = []
-        while episode == []:
-            episode = random.sample(self.episode_memory, 1)[0]
+        all_states = []
+        while episode == [] and len(all_states) < 4:
+            episode = np.array(random.sample(self.episode_memory, 1)[0])
+            all_states = np.stack(episode[:,0])
 
-        episode = np.array(episode)
-        # print(episode[0])
-        #exit()
-        #print(episode.shape)
-
-        # [(state,action,reward,terminal),]......
-        grouped_states = np.stack(episode[:,0])
-
-        # print(grouped_states.shape)
-        all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
+        #all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
        
-
         states = []
 
         for s in range(self.agent_history_length-1,len(all_states)):
             states.append(all_states[s-np.arange(self.agent_history_length)])
-            # print(s-np.arange(self.agent_history_length))
+
         print("all states length", len(all_states))
-        print("states are:", states)
+
         states = np.stack(states,axis=0)
 
 
