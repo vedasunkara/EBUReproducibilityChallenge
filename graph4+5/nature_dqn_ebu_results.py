@@ -331,7 +331,7 @@ class EpisodicReplayMemory(object):
         
         episode = []
         all_states = []
-        while episode == [] and len(all_states) < 4:
+        while episode == [] or len(all_states) < 4:
             episode = np.array(random.sample(self.episode_memory, 1)[0])
             all_states = np.stack(episode[:,0])
 
