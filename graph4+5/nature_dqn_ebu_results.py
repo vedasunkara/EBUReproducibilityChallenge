@@ -388,6 +388,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
         q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
     q_tilde = np.array(q_vals_all)
+    print("Q_TIDE SHAPE", q_tilde.shape)
 
 
     T = len(states)
@@ -398,6 +399,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
     for k in range(T-2,0,-1): #T-2
         cur_action = actions[k]
+        print("CURRENT ACTION", cur_action)
+        print("K", k)
         q_tilde[k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[k][cur_action]
         y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
 
