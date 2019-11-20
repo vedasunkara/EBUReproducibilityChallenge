@@ -26,7 +26,7 @@ NETW_UPDATE_FREQ = 10000         # Number of chosen actions between updating the
                                  # DeepMind code, it is clearly measured in the number
                                  # of actions the agent choses
 DISCOUNT_FACTOR = 0.99           # gamma in the Bellman equation
-REPLAY_MEMORY_START_SIZE = 50000  # Number of completely random actions, 
+REPLAY_MEMORY_START_SIZE = 100 #50000  # Number of completely random actions, 
                                  # before the agent starts learning
 MAX_FRAMES = 30000000            # Total number of frames the agent sees 
 MEMORY_SIZE = 1000000            # Number of transitions stored in the replay memory
@@ -351,7 +351,7 @@ class EpisodicReplayMemory(object):
         states = np.concatenate(states,axis=0)
 
 
-        next_states = states[1:]    
+        #next_states = states[:,1:]    
         cur_states = states #[:-1]
 
 
@@ -361,7 +361,7 @@ class EpisodicReplayMemory(object):
 
         
 
-        return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
+        return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards,None #np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
         # return np.transpose(self.states, axes=(0, 2, 3, 1)), self.actions[self.indices], self.rewards[self.indices], np.transpose(self.new_states, axes=(0, 2, 3, 1)), self.terminal_flags[self.indices]
 
