@@ -340,7 +340,7 @@ class EpisodicReplayMemory(object):
 
         # [(state,action,reward,terminal),]......
         grouped_states = np.stack(episode[:,0])
-        print("grouped states:", grouped_states)
+
         # print(grouped_states.shape)
         all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
        
@@ -350,8 +350,8 @@ class EpisodicReplayMemory(object):
         for s in range(self.agent_history_length-1,len(all_states)):
             states.append(all_states[s-np.arange(self.agent_history_length)])
             # print(s-np.arange(self.agent_history_length))
-
-
+        print("all states length", len(all_states))
+        print("states are:", states)
         states = np.stack(states,axis=0)
 
 
