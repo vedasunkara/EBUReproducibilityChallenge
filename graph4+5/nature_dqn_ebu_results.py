@@ -329,7 +329,10 @@ class EpisodicReplayMemory(object):
         #     self.states[i] = self._get_state(idx - 1)
         #     self.new_states[i] = self._get_state(idx)
         
-        episode = random.sample(self.episode_memory, 1)[0]
+        episode = []
+        while not episode:
+            episode = random.sample(self.episode_memory, 1)[0]
+
         episode = np.array(episode)
         # print(episode[0])
         #exit()
@@ -489,7 +492,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
     q_vals_all = []
 
-
+    print("length of new states", len(new_states))
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
         # print("generating q # ",i)
         #print(new_states[max(x-SPLIT_SIZE,0):x].shape)
@@ -497,7 +500,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
         #    print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
 
         q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
-
+    print("q vals all length:", len(q_vals_all))
     q_tilde = np.concatenate(q_vals_all,axis=0)
 
 
