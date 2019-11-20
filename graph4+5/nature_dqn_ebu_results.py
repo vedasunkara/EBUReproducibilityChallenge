@@ -342,7 +342,7 @@ class EpisodicReplayMemory(object):
         for s in range(self.agent_history_length-1,len(all_states)):
             states.append(all_states[s-np.arange(self.agent_history_length)])
 
-        print("all states length", len(all_states))
+        print("next length", len(all_states))
 
         states = np.stack(states,axis=0)
 
@@ -354,7 +354,7 @@ class EpisodicReplayMemory(object):
         actions = episode[:,1][self.agent_history_length-1:]
         next_rewards = episode[:,2][self.agent_history_length-1:]
         
-
+        print("next states length", len(next_states))
         
         # print("curr states shape", cur_states.shape)
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
