@@ -477,20 +477,26 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     # The main network estimates which action is best (in the next 
     # state s', new_states is passed!) 
     # for every transition in the minibatch
-    with open('output_file.dat', 'a') as of:
-        print(states.shape, file=of)
+    # with open('output_file.dat', 'a') as of:
+    #     print(states.shape, file=of)
     
+
+    print("Running on episode of length",len(states))
 
     q_vals_all = []
 
 
-    for x in range(len(new_states),0,-SPLIT_SIZE):
+    for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
+        print("generating q # ",i)
         #print(new_states[max(x-SPLIT_SIZE,0):x].shape)
-        with open('output_file.dat', 'a') as of:
-           print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
+        # with open('output_file.dat', 'a') as of:
+        #    print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
+
         q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
 
     q_tilde = np.concatenate(q_vals_all,axis=0)
+
+
     
     #arg_q_max = session.run(main_dqn.best_action, feed_dict={main_dqn.input:new_states})
     # The target network estimates the Q-values (in the next state s', new_states is passed!) 
@@ -514,39 +520,12 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     y = np.zeros(T)
     y[-1] = rewards[-1]
 
+
     for k in range(T-2,0,-1): #T-2
         cur_action = actions[k]
         q_tilde[k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[k][cur_action]
         y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
 
-   
-
-
-
-    #####################
-
-  #episode = np.array(episode[-T:])      
-
-              # actions = episode[:,1]
-              # next_rewards = episode[:,2]
-
-              # next_states = np.squeeze(np.stack(episode[:,3]),axis=1)
-
-              # cur_states =  np.squeeze(np.stack(episode[:,0]),axis=1)
-              # q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
-              # q_tilde = q_tilde_temp.numpy()
-
-              # y = np.zeros(T)
-              # y[-1] = next_rewards[-1]
-
-              
-              # for k in range(T-2,0,-1):
-              #   cur_action = actions[k]
-              #   q_tilde[k][cur_action] = self.beta * y[k+1] + (1-self.beta) * q_tilde[k][cur_action]
-              #   y[k] = next_rewards[k] + self.gamma * np.max(q_tilde[k,])
-
-
-    #####################
 
 
     # Gradient descend step to update the parameters of the main network
@@ -558,14 +537,17 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     # actions = np.split(actions, SPLIT_SIZE)
 
 
-    for x in range(len(states),0,-SPLIT_SIZE):
+    print("Training...")
+    for i,x in enumerate(range(len(states),0,-SPLIT_SIZE)):
 
         use_states = states[max(x-SPLIT_SIZE,0):x]
         use_actions = actions[max(x-SPLIT_SIZE,0):x]
         use_rewards = y[max(x-SPLIT_SIZE,0):x]
 
-        with open('output_file.dat', 'a') as of:
-            print(use_states.shape)
+        print("training # ",i,len(use_rewards))
+
+        # with open('output_file.dat', 'a') as of:
+        #     print(use_states.shape)
 
         loss, _ = session.run([main_dqn.loss, main_dqn.update], 
                               feed_dict={main_dqn.input:use_states, 
@@ -574,6 +556,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
                                          main_dqn.action:use_actions})
         loss_total+=loss
         counter+=1
+
+    print("Resulting Loss",loss_total/counter)
 
     return loss_total/counter
 
@@ -751,9 +735,9 @@ def train():
             ####### Training #######
             ########################
             epoch_frame = 0
-            my_replay_memory.add_episode()
             while epoch_frame < EVAL_FREQUENCY:
                 terminal_life_lost = atari.reset(sess)
+                my_replay_memory.add_episode()
                 episode_reward_sum = 0
                 for _ in range(MAX_EPISODE_LENGTH):
                     # (4★)
