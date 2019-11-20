@@ -26,7 +26,7 @@ NETW_UPDATE_FREQ = 10000         # Number of chosen actions between updating the
                                  # DeepMind code, it is clearly measured in the number
                                  # of actions the agent choses
 DISCOUNT_FACTOR = 0.99           # gamma in the Bellman equation
-REPLAY_MEMORY_START_SIZE = 1000#50000  # Number of completely random actions, 
+REPLAY_MEMORY_START_SIZE = 50000  # Number of completely random actions, 
                                  # before the agent starts learning
 MAX_FRAMES = 30000000            # Total number of frames the agent sees 
 MEMORY_SIZE = 1000000            # Number of transitions stored in the replay memory
@@ -330,7 +330,7 @@ class EpisodicReplayMemory(object):
             all_states = np.stack(episode[:,0])
 
 
-        print("all states length", len(all_states))
+        #print("all states length", len(all_states))
         
         states = []
 
@@ -338,10 +338,10 @@ class EpisodicReplayMemory(object):
             states.append(all_states[s-np.arange(self.agent_history_length)])
 
         
-        print("length of states", len(states))
+        #print("length of states", len(states))
         states = np.stack(states,axis=0)
 
-        print("length of states (post stacking)", len(states))
+        #print("length of states (post stacking)", len(states))
 
         next_states = states[1:]    
         cur_states = states #[:-1]
@@ -350,7 +350,7 @@ class EpisodicReplayMemory(object):
         actions = episode[:,1][self.agent_history_length-1:]
         next_rewards = episode[:,2][self.agent_history_length-1:]
         
-        print("next states length", len(next_states))
+        # print("next states length", len(next_states))
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
 def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1.0):
@@ -388,7 +388,6 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
         q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
     q_tilde = np.array(q_vals_all)
-    print("Q_TIDE SHAPE", q_tilde.shape)
 
 
     T = len(states)
@@ -399,10 +398,9 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
     for k in range(T-2,0,-1): #T-2
         cur_action = actions[k]
-        print("CURRENT ACTION", cur_action)
-        print("K", k)
+        #print("K", k)
         q_tilde[0][k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[0][k][cur_action]
-        y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
+        y[k] = rewards[k] + gamma * np.max(q_tilde[0][k,])
 
 
 

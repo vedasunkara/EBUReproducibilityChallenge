@@ -350,7 +350,7 @@ class EpisodicReplayMemory(object):
         actions = episode[:,1][self.agent_history_length-1:]
         next_rewards = episode[:,2][self.agent_history_length-1:]
         
-        #print("next states length", len(next_states))
+        # print("next states length", len(next_states))
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
 def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=0.5):
@@ -386,14 +386,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=0
 
     # print("length of new states", len(new_states))
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
-        # print("generating q # ",i)
-        #print(new_states[max(x-SPLIT_SIZE,0):x].shape)
-        # with open('output_file.dat', 'a') as of:
-        #    print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
-        # print("hullaboooo")
         q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
-    # print("q vals all length:", len(q_vals_all))
-    q_tilde = np.concatenate(q_vals_all,axis=0)
+    q_tilde = np.array(q_vals_all)
 
 
     T = len(states)
@@ -404,8 +398,9 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=0
 
     for k in range(T-2,0,-1): #T-2
         cur_action = actions[k]
-        q_tilde[k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[k][cur_action]
-        y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
+        #print("K", k)
+        q_tilde[0][k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[0][k][cur_action]
+        y[k] = rewards[k] + gamma * np.max(q_tilde[0][k,])
 
 
 
@@ -666,7 +661,7 @@ def train():
                     SUMM_WRITER.add_summary(summ_param, frame_number)
                     
                     print(len(rewards), frame_number, np.mean(rewards[-100:]))
-                    with open('rewards_beta_0.5.dat', 'a') as reward_file:
+                    with open('rewards_beta.dat', 'a') as reward_file:
                         print(len(rewards), frame_number, 
                               np.mean(rewards[-100:]), file=reward_file)
             
@@ -709,7 +704,7 @@ def train():
             print("Evaluation score:\n", np.mean(eval_rewards))
             mean_reward = np.mean(eval_rewards)
             mean_q = np.mean(q_values)
-            with open('mean_q_test_score_beta_0.5.csv', 'a') as q_reward_file:
+            with open('mean_q_test_score_beta.csv', 'a') as q_reward_file:
                 print(mean_reward, mean_q, file=q_reward_file)
             try:
                 generate_gif(frame_number, frames_for_gif, eval_rewards[0], PATH)
@@ -723,7 +718,7 @@ def train():
             # Show the evaluation score in tensorboard
             summ = sess.run(EVAL_SCORE_SUMMARY, feed_dict={EVAL_SCORE_PH:np.mean(eval_rewards)})
             SUMM_WRITER.add_summary(summ, frame_number)
-            with open('rewardsEval_beta_0.5.dat', 'a') as eval_reward_file:
+            with open('rewardsEval_beta.dat', 'a') as eval_reward_file:
                 print(frame_number, np.mean(eval_rewards), file=eval_reward_file)
 
 if TRAIN:
