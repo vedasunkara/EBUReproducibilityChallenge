@@ -330,7 +330,7 @@ class EpisodicReplayMemory(object):
         #     self.new_states[i] = self._get_state(idx)
         
         episode = []
-        while not episode:
+        while episode == []:
             episode = random.sample(self.episode_memory, 1)[0]
 
         episode = np.array(episode)
@@ -340,6 +340,7 @@ class EpisodicReplayMemory(object):
 
         # [(state,action,reward,terminal),]......
         grouped_states = np.stack(episode[:,0])
+        print("grouped states:", grouped_states)
         # print(grouped_states.shape)
         all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
        
@@ -363,7 +364,7 @@ class EpisodicReplayMemory(object):
         
 
         
-        print("curr states shape", cur_states.shape)
+        # print("curr states shape", cur_states.shape)
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
         # return np.transpose(self.states, axes=(0, 2, 3, 1)), self.actions[self.indices], self.rewards[self.indices], np.transpose(self.new_states, axes=(0, 2, 3, 1)), self.terminal_flags[self.indices]
@@ -492,7 +493,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
     q_vals_all = []
 
-    print("length of new states", len(new_states))
+    # print("length of new states", len(new_states))
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
         # print("generating q # ",i)
         #print(new_states[max(x-SPLIT_SIZE,0):x].shape)
@@ -500,7 +501,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
         #    print(new_states[min(x-SPLIT_SIZE,0):x].shape, file=of)
 
         q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
-    print("q vals all length:", len(q_vals_all))
+    # print("q vals all length:", len(q_vals_all))
     q_tilde = np.concatenate(q_vals_all,axis=0)
 
 
