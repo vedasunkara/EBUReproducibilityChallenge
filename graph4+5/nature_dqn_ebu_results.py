@@ -336,13 +336,14 @@ class EpisodicReplayMemory(object):
             all_states = np.stack(episode[:,0])
 
         #all_states =  grouped_states #np.squeeze(np.stack(episode[:,0]),axis=1)
-       
+        print("all states length", len(all_states))
+        
         states = []
 
         for s in range(self.agent_history_length-1,len(all_states)):
             states.append(all_states[s-np.arange(self.agent_history_length)])
 
-        print("next length", len(all_states))
+        
 
         states = np.stack(states,axis=0)
 
