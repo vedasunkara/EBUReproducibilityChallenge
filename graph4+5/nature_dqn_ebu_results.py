@@ -26,7 +26,7 @@ NETW_UPDATE_FREQ = 10000         # Number of chosen actions between updating the
                                  # DeepMind code, it is clearly measured in the number
                                  # of actions the agent choses
 DISCOUNT_FACTOR = 0.99           # gamma in the Bellman equation
-REPLAY_MEMORY_START_SIZE = 100 #50000  # Number of completely random actions, 
+REPLAY_MEMORY_START_SIZE = 1000 #50000  # Number of completely random actions, 
                                  # before the agent starts learning
 MAX_FRAMES = 30000000            # Total number of frames the agent sees 
 MEMORY_SIZE = 1000000            # Number of transitions stored in the replay memory
