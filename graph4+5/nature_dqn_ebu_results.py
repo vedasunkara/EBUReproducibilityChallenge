@@ -351,7 +351,7 @@ class EpisodicReplayMemory(object):
         states = np.stack(states,axis=0)
 
 
-        #next_states = states[:,1:]    
+        next_states = states[1:]    
         cur_states = states #[:-1]
 
 
