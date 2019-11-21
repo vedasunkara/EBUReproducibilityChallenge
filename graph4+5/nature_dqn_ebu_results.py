@@ -396,8 +396,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     y[-1] = rewards[-1]
 
 
-    for k in range(T-2,0,-1): #T-2
-        cur_action = actions[k]
+    for k in range(T-2,-1,-1): #T-2
+        cur_action = actions[k+1]
         #print("K", k)
         q_tilde[0][k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[0][k][cur_action]
         y[k] = rewards[k] + gamma * np.max(q_tilde[0][k,])
