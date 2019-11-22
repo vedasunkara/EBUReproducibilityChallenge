@@ -26,7 +26,7 @@ NETW_UPDATE_FREQ = 10000         # Number of chosen actions between updating the
                                  # DeepMind code, it is clearly measured in the number
                                  # of actions the agent choses
 DISCOUNT_FACTOR = 0.99           # gamma in the Bellman equation
-REPLAY_MEMORY_START_SIZE = 50000  # Number of completely random actions,
+REPLAY_MEMORY_START_SIZE = 20#50000  # Number of completely random actions,
                                  # before the agent starts learning
 MAX_FRAMES = 30000000            # Total number of frames the agent sees
 MEMORY_SIZE = 1000000            # Number of transitions stored in the replay memory
@@ -386,7 +386,7 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
 
     # print("length of new states", len(new_states))
     for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
-        q_vals_all.append(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
+        q_vals_all.extend(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
     q_tilde = np.array(q_vals_all)
 
 
@@ -399,8 +399,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=1
     for k in range(T-2,-1,-1): #T-2
         cur_action = actions[k+1]
         #print("K", k)
-        q_tilde[0][k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[0][k][cur_action]
-        y[k] = rewards[k] + gamma * np.max(q_tilde[0][k,])
+        q_tilde[k][cur_action] = beta * y[k+1] + (1-beta) * q_tilde[k][cur_action]
+        y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
 
 
 
