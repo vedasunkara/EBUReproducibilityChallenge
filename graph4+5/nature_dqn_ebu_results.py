@@ -228,7 +228,7 @@ class ExplorationExploitationScheduler(object):
 
 class EpisodicReplayMemory(object):
     """Replay Memory that stores the last size=1,000,000 transitions"""
-    def __init__(self, size=int(100000/MAX_EPISODE_LENGTH), frame_height=84, frame_width=84,
+    def __init__(self, size=MEMORY_SIZE, frame_height=84, frame_width=84,
                  agent_history_length=4, batch_size=32):
         """
         Args:
@@ -589,7 +589,7 @@ PARAM_SUMMARIES = tf.summary.merge(ALL_PARAM_SUMMARIES)
 
 def train():
     """Contains the training and evaluation loops"""
-    my_replay_memory = EpisodicReplayMemory(size=int(MEMORY_SIZE/MAX_EPISODE_LENGTH), batch_size=BS)   # (★)
+    my_replay_memory = EpisodicReplayMemory(size=MEMORY_SIZE, batch_size=BS)   # (★)
     update_networks = TargetNetworkUpdater(MAIN_DQN_VARS, TARGET_DQN_VARS)
 
     explore_exploit_sched = ExplorationExploitationScheduler(
