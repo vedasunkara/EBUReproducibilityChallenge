@@ -15,11 +15,34 @@ def get_rewards_and_q(file):
 		q_values.append(q_value)
 	return rewards, q_values
 
+end_path = "mean_q_test_score.csv"
 dqn_rewards, dqn_q_values = get_rewards_and_q("mean_q_test_score_dqn.csv")
+
+#############################
+# EBU Beta=1 and DQN Parameters 
+#############################
+ebu_rewards, ebu_q_values = get_rewards_and_q("1ebu_"+end_path)
+
+#############################
+# EBU Beta=1 and EBU Parameters 
+#############################
+ebu_rewards, ebu_q_values = get_rewards_and_q("1mean"+end_path)
+
+#############################
+# EBU Beta=0.5 and EBU Parameters 
+#############################
+ebu_rewards, ebu_q_values = get_rewards_and_q("5ebu"+end_path)
+
+#############################
+# Nature DQN with EBU Parameters 
+#############################
+dqn_rewards, dqn_q_values = get_rewards_and_q("last_"+end_path)
+
+
 ebu_rewards, ebu_q_values = get_rewards_and_q("mean_q_test_score_ebu_1.csv")
-ebu_n = len(ebu_rewards)
-dqn_rewards = dqn_rewards[:ebu_n]
-dqn_q_values = dqn_q_values[:ebu_n]
+#ebu_n = len(ebu_rewards)
+dqn_rewards = dqn_rewards #dqn_rewards[:ebu_n]
+dqn_q_values = dqn_q_values #dqn_q_values[:ebu_n]
 
 # plt.xticks(np.arange(0, 200, 50))
 # plt.yticks(np.arange(0, 10, 2))
