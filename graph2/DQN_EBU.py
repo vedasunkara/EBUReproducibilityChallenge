@@ -8,13 +8,13 @@ import numpy as np
 from model import DQNetwork 
 
 class DQNSolverEBU:
-    def __init__(self, observation_space, action_space,memory_size,gamma):
+    def __init__(self, observation_space, action_space,memory_size,gamma,beta):
         self.gamma = gamma
         self.observation_space = observation_space
         self.action_space = action_space
         self.memory_size = memory_size
         self.action_space = action_space
-        self.beta = 1
+        self.beta = beta
         self.episode_memory = []
         self.num_episodes = -1
         self.num_transitions = -1
@@ -39,52 +39,64 @@ class DQNSolverEBU:
         q_values =  self.network.model(state).numpy()
         return np.argmax(q_values[0])
 
+    def get_episode(self):
+        cur_index = self.num_episodes % self.memory_size
+        # print(len(self.episode_memory))
+        indices = np.delete(np.arange(len(self.episode_memory)),cur_index)
+        #print(indices)
+        index = np.random.choice(indices,1)
+        return self.episode_memory[index[0]]
+
+
     def experience_replay(self):
           
-          with tf.GradientTape() as tape: 
-            batches_seen = 0
-            losses = tf.convert_to_tensor(0,dtype=tf.float64)
-            seen = 0
+                     # batches_seen = 0
+            # losses = tf.convert_to_tensor(0,dtype=tf.float64)
+            # seen = 0
             
-            while batches_seen < 350:
+            # while batches_seen < 350:
 
-              episode = random.sample(self.episode_memory, 1)[0]
+        if self.num_episodes >= 1:
 
-              T=len(episode)
+            episode = self.get_episode() #random.sample(self.episode_memory, 1)[0]
 
-              if batches_seen + T > 350:
-                T = 350 - batches_seen
 
-              batches_seen+=T
+            T=len(episode)
 
-              # print(T)
+            # if batches_seen + T > 350:
+            #   T = 350 - batches_seen
 
-              episode = np.array(episode[-T:])      
+            # batches_seen+=T
 
-              actions = episode[:,1]
-              next_rewards = episode[:,2]
+            # print(T)
 
-              next_states = np.squeeze(np.stack(episode[:,3]),axis=1)
+            episode = np.array(episode[-T:])      
 
-              cur_states =  np.squeeze(np.stack(episode[:,0]),axis=1)
-              q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
-              q_tilde = q_tilde_temp.numpy()
+            actions = episode[:,1]
+            next_rewards = episode[:,2]
 
-              y = np.zeros(T)
-              y[-1] = next_rewards[-1]
+            next_states = np.squeeze(np.stack(episode[:,3]),axis=1)
 
-              
-              for k in range(T-2,0,-1):
-                cur_action = actions[k]
-                q_tilde[k][cur_action] = self.beta * y[k+1] + (1-self.beta) * q_tilde[k][cur_action]
-                y[k] = next_rewards[k] + self.gamma * np.max(q_tilde[k,])
+            cur_states =  np.squeeze(np.stack(episode[:,0]),axis=1)
+            q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
+            q_tilde = q_tilde_temp.numpy()
+
+            y = np.zeros(T)
+            y[-1] = next_rewards[-1]
+
+            
+            for k in range(T-2,-1,-1): #vs 0
+              cur_action = actions[k+1] #vs k
+              q_tilde[k][cur_action] = self.beta * y[k+1] + (1-self.beta) * q_tilde[k][cur_action] 
+              y[k] = next_rewards[k] + self.gamma * np.max(q_tilde[k,])
+
+            with tf.GradientTape() as tape: 
+
               q_values = self.network.model(cur_states)
-
               QA_values = tf.gather(tf.reshape(q_values,[-1]),tf.convert_to_tensor(4*np.arange(len(actions))+actions, dtype=tf.int32))
+              loss = self.network.loss(QA_values, y)
+            # losses += curr_loss*T #*tf.convert_to_tensor(T,dtype=tf.float64)
 
-              curr_loss = self.network.loss(QA_values, y)
-              losses += curr_loss*T #*tf.convert_to_tensor(T,dtype=tf.float64)
-
-            losses = tf.math.divide(losses,batches_seen)
-          gradients = tape.gradient(losses, self.network.model.trainable_variables)
-          self.network.optimizer.apply_gradients(zip(gradients, self.network.model.trainable_variables))
+          # losses = tf.math.divide(losses,batches_seen)
+            gradients = tape.gradient(loss, self.network.model.trainable_variables)
+            self.network.optimizer.apply_gradients(zip(gradients, self.network.model.trainable_variables))
