@@ -36,8 +36,6 @@ class DQNSolver:
         return np.argmax(q_values[0])
 
     def experience_replay(self):
-          # print(self.num_transitions+1)
-          # print(len(self.memory))
           episode = random.sample(self.memory, min(350,self.num_transitions+1))
           T=len(episode)
           episode = np.array(episode)          

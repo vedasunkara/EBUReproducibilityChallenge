@@ -51,26 +51,10 @@ class DQNSolverNSTEP:
 
     def experience_replay(self):
 
-          
-                     # batches_seen = 0
-            # losses = tf.convert_to_tensor(0,dtype=tf.float64)
-            # seen = 0
-            
-            # while batches_seen < 350:
-
             if self.num_episodes >= 1:
-              episode = self.get_episode() #random.sample(self.episode_memory[], 1)[0]
+              episode = self.get_episode() 
 
               T=len(episode)
-
-              #print("training",T)
-
-              # if batches_seen + T > 350:
-              #   T = 350 - batches_seen
-
-              # batches_seen+=T
-
-              # print(T)
 
               episode = np.array(episode[-T:])      
 
@@ -80,29 +64,20 @@ class DQNSolverNSTEP:
               next_states = np.squeeze(np.stack(episode[:,3]),axis=1)
 
               cur_states =  np.squeeze(np.stack(episode[:,0]),axis=1)
-              q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
-              q_tilde = q_tilde_temp.numpy()
+              # q_tilde_temp =  self.old_network.model(tf.convert_to_tensor(next_states,tf.float32)) #self.old_model(next_states)
+              # q_tilde = q_tilde_temp.numpy()
 
               y = np.zeros(T)
               y[-1] = next_rewards[-1]
-
-              #If we just set it equal to a reward? Why use Q?
-
-              #next_QA_values = np.max(q_tilde,axis=-1)[-1]
-
               
               for k in range(T-2,-1,-1): #vs 0
-                #cur_action = actions[k+1] #+1] #vs k
-                # q_tilde[k][cur_action] = self.beta * y[k+1] + (1-self.beta) * q_tilde[k][cur_action] 
-                y[k] = next_rewards[k] + self.gamma * y[k+1] # (q_tilde[k,cur_action] + 
+                y[k] = next_rewards[k] + self.gamma * y[k+1] 
 
               with tf.GradientTape() as tape: 
 
                 q_values = self.network.model(cur_states)
                 QA_values = tf.gather(tf.reshape(q_values,[-1]),tf.convert_to_tensor(4*np.arange(len(actions))+actions, dtype=tf.int32))
                 loss = self.network.loss(QA_values, y)
-              # losses += curr_loss*T #*tf.convert_to_tensor(T,dtype=tf.float64)
 
-            # losses = tf.math.divide(losses,batches_seen)
               gradients = tape.gradient(loss, self.network.model.trainable_variables)
               self.network.optimizer.apply_gradients(zip(gradients, self.network.model.trainable_variables))
