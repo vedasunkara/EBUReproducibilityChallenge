@@ -168,7 +168,7 @@ class DQN(object):
         
         # Parameter updates
         self.loss = tf.reduce_mean(tf.losses.huber_loss(labels=self.target_q, predictions=self.Q))
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
+        self.optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate)
         self.update = self.optimizer.minimize(self.loss)
 
 class ExplorationExploitationScheduler(object):

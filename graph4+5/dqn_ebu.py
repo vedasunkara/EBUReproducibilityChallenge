@@ -178,7 +178,7 @@ class DQN(object):
 
         # Parameter updates
         self.loss = tf.reduce_mean(tf.losses.huber_loss(labels=self.target_q, predictions=self.Q))
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
+        self.optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate)
         self.update = self.optimizer.minimize(self.loss)
 
 class ExplorationExploitationScheduler(object):
@@ -251,7 +251,7 @@ class ExplorationExploitationScheduler(object):
 
 class EpisodicReplayMemory(object):
     """Replay Memory that stores the last size=1,000,000 transitions"""
-    def __init__(self, size=MEMORY_SIZE, frame_height=84, frame_width=84,
+    def __init__(self, size=5000, frame_height=84, frame_width=84,
                  agent_history_length=4, batch_size=32):
         """
         Args:
@@ -304,8 +304,9 @@ class EpisodicReplayMemory(object):
         if frame.shape != (self.frame_height, self.frame_width):
             raise ValueError('Dimension of frame is wrong!')
 
-
         index = self.episode_counter % self.size
+        #print("Current Episode:", self.episode_counter,"index:",index)
+
         # print("index: ", index)
         # print("epsiode memory length: ", len(self.episode_memory))
         # print(self.episode_memory, index)
@@ -339,6 +340,23 @@ class EpisodicReplayMemory(object):
                 break
             self.indices[i] = index
 
+    def get_episode(self):
+        cur_index = self.episode_counter % self.size
+        # print(len(self.episode_memory))
+        indices = np.delete(np.arange(min(self.episode_counter+1,self.size)),cur_index)
+        #print(indices)
+        index = np.random.choice(indices,1)
+        return self.episode_memory[index[0]]
+
+    def get_current_frames(self):
+        cur_index = self.episode_counter % self.size
+        # print(len(self.episode_memory))
+
+        current_episode = self.episode_memory[cur_index]
+        all_frames = np.array(current_episode)[:,0]
+        # print(all_frames.shape)
+        return all_frames
+
     def get_minibatch(self):
         """
         Returns a minibatch of self.batch_size = 32 transitions
@@ -346,37 +364,49 @@ class EpisodicReplayMemory(object):
         if self.count < self.agent_history_length:
             raise ValueError('Not enough memories to get a minibatch')
 
-        episode = []
-        all_states = []
-        while episode == [] or len(all_states) < 4:
-            episode = np.array(random.sample(self.episode_memory, 1)[0])
-            all_states = np.stack(episode[:,0])
+        episode = np.array(self.get_episode()) #[]
+        # print*episode()
+        all_states = np.stack(episode[:,0]) # []
+
+        # print(all_states.shape)
+
+        # while episode == [] or len(all_states) < 4:
+        #     episode = np.array(random.sample(self.episode_memory, 1)[0])
+        #     all_states = np.stack(episode[:,0])
 
 
         #print("all states length", len(all_states))
 
         states = []
 
+        #4
+        # 0 1 2 3 4
+
         for s in range(self.agent_history_length-1,len(all_states)):
+            # print(s-np.arange(self.agent_history_length))
             states.append(all_states[s-np.arange(self.agent_history_length)])
 
 
         #print("length of states", len(states))
         states = np.stack(states,axis=0)
 
+        # print(states.shape)
+
         #print("length of states (post stacking)", len(states))
 
         next_states = states[1:]
-        cur_states = states #[:-1]
+        cur_states = states #[:-1] #[:-1]
 
 
         actions = episode[:,1][self.agent_history_length-1:]
         next_rewards = episode[:,2][self.agent_history_length-1:]
 
+        # print(len(actions),len(next_rewards),len(states))
+
         # print("next states length", len(next_states))
         return np.transpose(cur_states, axes=(0, 2, 3, 1)), actions, next_rewards, np.transpose(next_states, axes=(0, 2, 3, 1)) #, self.terminal_flags[self.indices]
 
-def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=args.beta):
+def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=0.5):
     """
     Args:
         session: A tensorflow sesson object
@@ -395,8 +425,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=a
     #states, actions, rewards, new_states, terminal_flags = replay_memory.get_minibatch()
     states, actions, rewards, new_states = replay_memory.get_minibatch()
 
-
-    # The main network estimates which action is best (in the next
+    # print(rewards)
+    # The main network estimates which action is best (isn the next
     # state s', new_states is passed!)
     # for every transition in the minibatch
     # with open('output_file.dat', 'a') as of:
@@ -405,12 +435,20 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=a
 
     # print("Running on episode of length",len(states))
 
+    # print("NEW STATE SIZE",new_states.shape)
+
     q_vals_all = []
 
     # print("length of new states", len(new_states))
-    for i,x in enumerate(range(len(new_states),0,-SPLIT_SIZE)):
+    for i,x in enumerate(range(len(new_states),-1,-SPLIT_SIZE)):
         q_vals_all.extend(session.run(target_dqn.q_values, feed_dict={target_dqn.input:new_states[max(x-SPLIT_SIZE,0):x]}))
-    q_tilde = np.array(q_vals_all)
+    q_tilde = np.stack(q_vals_all)
+
+
+    # print("NEW STATE Q SIZE",q_tilde.shape)
+
+    # print(rewards)
+
 
 
     T = len(states)
@@ -426,6 +464,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=a
         y[k] = rewards[k] + gamma * np.max(q_tilde[k,])
 
 
+    # print(y)
+
 
     # Gradient descend step to update the parameters of the main network
     loss_total = 0
@@ -437,11 +477,24 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=a
 
 
     # print("Training...")
-    for i,x in enumerate(range(len(states),0,-SPLIT_SIZE)):
+
+
+    # print("Y",len(y))
+    # print([x for x in zip(y,rewards)])
+
+    
+
+
+    for i,x in enumerate(range(len(states),-1,-SPLIT_SIZE)):
 
         use_states = states[max(x-SPLIT_SIZE,0):x]
         use_actions = actions[max(x-SPLIT_SIZE,0):x]
         use_rewards = y[max(x-SPLIT_SIZE,0):x]
+        # print("i:",i)
+        # print("\t",len(use_states))
+
+        # print(use_actions)
+        # print(use_rewards)
 
         # print("training # ",i,len(use_rewards))
 
@@ -457,6 +510,8 @@ def learn(session, replay_memory, main_dqn, target_dqn, batch_size, gamma,beta=a
         counter+=1
 
     # print("Resulting Loss",loss_total/counter)
+
+    # print(loss_total/counter)
 
     return loss_total/counter
 
@@ -612,7 +667,7 @@ PARAM_SUMMARIES = tf.summary.merge(ALL_PARAM_SUMMARIES)
 
 def train():
     """Contains the training and evaluation loops"""
-    my_replay_memory = EpisodicReplayMemory(size=MEMORY_SIZE, batch_size=BS)   # (★)
+    my_replay_memory = EpisodicReplayMemory(size=5000, batch_size=BS)   # (★)
     update_networks = TargetNetworkUpdater(MAIN_DQN_VARS, TARGET_DQN_VARS)
 
     explore_exploit_sched = ExplorationExploitationScheduler(
@@ -625,6 +680,8 @@ def train():
 
         frame_number = 0
         rewards = []
+        train_q = []
+        lengths = []
         loss_list = []
 
 
@@ -634,14 +691,24 @@ def train():
             ####### Training #######
             ########################
             epoch_frame = 0
+            terminal_life_lost = False
             while epoch_frame < EVAL_FREQUENCY:
-                terminal_life_lost = atari.reset(sess)
+
+
+                # print(len(my_replay_memory.episode_memory))
+
+                # if not terminal_life_lost:
+                #     print("Adding episode...")
                 my_replay_memory.add_episode()
+
+                terminal_life_lost = atari.reset(sess)
+                
                 episode_reward_sum = 0
-                for _ in range(MAX_EPISODE_LENGTH):
+                for step_counter in range(MAX_EPISODE_LENGTH):
                     # (4★)
                     action,q_score = explore_exploit_sched.get_action(sess, frame_number, atari.state)
                     # (5★)
+                    train_q.append(q_score)
                     processed_new_frame, reward, terminal, terminal_life_lost, _ = atari.step(sess, action)
                     frame_number += 1
                     epoch_frame += 1
@@ -651,6 +718,10 @@ def train():
                     clipped_reward = clip_reward(reward)
 
                     # (7★) Store transition in the replay memory
+
+                    
+                    # print(reward,clipped_reward)
+
                     my_replay_memory.add_experience(action=action,
                                                     frame=processed_new_frame[:, :, 0],
                                                     reward=clipped_reward,
@@ -659,18 +730,34 @@ def train():
                     if frame_number % UPDATE_FREQ == 0 and frame_number > REPLAY_MEMORY_START_SIZE:
                         loss = learn(sess, my_replay_memory, MAIN_DQN, TARGET_DQN,
                                      BS, gamma = DISCOUNT_FACTOR) # (8★)
+
+
+
                         loss_list.append(loss)
+
                     if frame_number % NETW_UPDATE_FREQ == 0 and frame_number > REPLAY_MEMORY_START_SIZE:
                         update_networks(sess) # (9★)
 
                     if terminal:
                         terminal = False
                         break
+                    
+                    if terminal_life_lost:
+                        my_replay_memory.add_episode()
 
                 rewards.append(episode_reward_sum)
+                lengths.append(step_counter)
+
+
+
+                if  len(rewards) % 100 == 0:
+                     generate_gif(frame_number, my_replay_memory.get_current_frames(), rewards[-1], "gifs/")
+
+
+
 
                 # Output the progress:
-                if len(rewards) % 10 == 0:
+                if len(rewards) % 100 == 0:
                     # Scalar summaries for tensorboard
                     if frame_number > REPLAY_MEMORY_START_SIZE:
                         summ = sess.run(PERFORMANCE_SUMMARIES,
@@ -683,8 +770,8 @@ def train():
                     summ_param = sess.run(PARAM_SUMMARIES)
                     SUMM_WRITER.add_summary(summ_param, frame_number)
 
-                    print(len(rewards), frame_number, np.mean(rewards[-100:]))
-                    with open('rewards.dat', 'a') as reward_file:
+                    print(len(rewards), frame_number, np.mean(rewards[-100:]),np.mean(train_q[-100:]),np.mean(lengths[-100:]))
+                    with open('lastrewards.dat', 'a') as reward_file:
                         print(len(rewards), frame_number,
                               np.mean(rewards[-100:]), file=reward_file)
 
@@ -727,8 +814,8 @@ def train():
             print("Evaluation score:\n", np.mean(eval_rewards))
             mean_reward = np.mean(eval_rewards)
             mean_q = np.mean(q_values)
-            with open('mean_q_test_score.csv', 'a') as q_reward_file:
-                print(mean_reward, mean_q, file=q_reward_file)
+            with open('last_mean_q_test_score.csv', 'a') as q_reward_file:
+                print(mean_q, mean_reward, file=q_reward_file)
             try:
                 generate_gif(frame_number, frames_for_gif, eval_rewards[0], PATH)
             except IndexError:
@@ -741,7 +828,7 @@ def train():
             # Show the evaluation score in tensorboard
             summ = sess.run(EVAL_SCORE_SUMMARY, feed_dict={EVAL_SCORE_PH:np.mean(eval_rewards)})
             SUMM_WRITER.add_summary(summ, frame_number)
-            with open('rewardsEval.dat', 'a') as eval_reward_file:
+            with open('lastrewardsEval.dat', 'a') as eval_reward_file:
                 print(frame_number, np.mean(eval_rewards), file=eval_reward_file)
 
 if TRAIN:
