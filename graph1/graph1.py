@@ -73,7 +73,7 @@ for transitions in range(5, 50):
     eps = []
     cs = 0
 
-    while(cs != 3):
+    while(len(eps) <= 3):
       action_probabilities = np.zeros((2,))
       action_probabilities[0] = 0.5
       action_probabilities[1] = 0.5
@@ -167,7 +167,7 @@ for i in range(50):
       if(Q[cs].all() != 0):
         ap = Q[cs]/Q[cs].sum()
 
-      action = np.random.choice(action_size, p = ap)
+      action = np.argmax(Q[cs])
 
       sT = cs
 
