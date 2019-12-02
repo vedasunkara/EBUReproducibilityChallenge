@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import copy
 import queue
+import matplotlib.pyplot as plt
 
 class Maze(object):
 	'''
@@ -36,6 +37,14 @@ class Maze(object):
 			if best_length != -1:
 				return wall,best_length
 
+	def render(self):
+		position = np.zeros((10,10))
+		position[self.state[0]][self.state[1]] = 10
+		plt.imshow(self.walls+position)
+		plt.pause(.01)
+		plt.draw()
+
+
 
 	def get_adjacent(self,x,y,maze):
 
@@ -52,10 +61,13 @@ class Maze(object):
 	    frontier = queue.PriorityQueue()
 	    first = (0,0)
 	    frontier.put((0,(first,0,"Start",0)))
+	    #this tuple contains the state,the cost,and the previous
 	    while frontier.empty() == False:
 	        nextState = frontier.get()[1]
 	        if nextState[0] not in explored:
 	            explored.add(nextState[0])
+	            # exploredCost[nextState[0]] = nextState[1]
+
 	            if nextState[0][0] == 9 and nextState[0][1] == 9:
 	                return nextState[1]
 	            else:
@@ -140,6 +152,9 @@ class Maze_Stochastic(Maze):
 	def act(self, action):
 		next_state = copy.copy(self.state)
 		rand_num = np.random.rand()
+
+
+		# print(rand_num <= (self.stochasticity / 2))
 
 		if rand_num < self.stochasticity:
 			action = self.random_actions[action][int(rand_num <= (self.stochasticity / 2))]

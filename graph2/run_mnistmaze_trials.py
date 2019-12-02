@@ -4,7 +4,8 @@ import numpy as np
 from collections import deque
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from mnistmaze import *
+from dqn_test_new_maze import *
+#from theirmaze import *
 import queue
 import gzip
 
@@ -16,10 +17,7 @@ from DQN_EBU import DQNSolverEBU
 
 from DQN_NSTEP import DQNSolverNSTEP
 
-
-
-
-#Skeleton code for DQN architecture taken from https://github.com/gsurma
+#by https://github.com/gsurma
 
 GAMMA = 0.9
 LEARNING_RATE = 1e-3 
@@ -31,7 +29,7 @@ EXPLORATION_MIN = 0
 def run_mnist_maze(wall_density,EBU=False,stochastic=False,display=False,trials=0,EBU_VAL=None,NSTEP=False):
     trials = trials
     MEMORY_SIZE =  170 if EBU or NSTEP else 30000
-    while trials < 20:
+    while trials < 30:
       current_data = []
       environment = Maze(wall_density) if not stochastic else Maze_Stochastic(wall_density)
       
@@ -55,9 +53,11 @@ def run_mnist_maze(wall_density,EBU=False,stochastic=False,display=False,trials=
       run = 0
       total_steps = 0
       while total_steps < 200000:
+          # break
+          #print(dqn_solver.memory_size,stochastic)
           run += 1
           state = environment.reset()
-          state = np.expand_dims(state,axis=0)
+          state = np.expand_dims(state,axis=0) #np.reshape(np.transpose(state,[2,0,1]),[-1,2,28,28])
 
           step = 0
           if EBU or NSTEP:
@@ -74,15 +74,16 @@ def run_mnist_maze(wall_density,EBU=False,stochastic=False,display=False,trials=
 
               action = dqn_solver.act(tf.convert_to_tensor(state,dtype=tf.float32))
               state_next, reward, terminal = environment.act(action)
+              # print(state_next.shape)
               if display == True:
-                if run > 3000:
-                    if run % 500 == 0:
-                       env.render()
+                if run >= 100:
+                    if run % 100 == 0:
+                       environment.render()
 
-              state_next = np.expand_dims(state_next,axis=0)
+              state_next = np.expand_dims(state_next,axis=0) #np.reshape(np.transpose(state_next,[2,0,1]),[-1,2,28,28])
               dqn_solver.remember(tf.convert_to_tensor(state,dtype=tf.float32), action, reward, tf.convert_to_tensor(state_next,dtype=tf.float32), terminal)
 
-              if total_steps % 50 == 0:
+              if total_steps % 50 == 0: #and not NSTEP:
                   dqn_solver.experience_replay()
 
 
@@ -102,22 +103,23 @@ if __name__ == "__main__":
 
   #TO RUN:
 
-  #50% Determnistic:
-    run_mnist_maze(0.5,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
-    run_mnist_maze(0.5,EBU=False,stochastic=False,display=False,NSTEP=True,trials=0)
-    run_mnist_maze(0.5,EBU=False,stochastic=False,display=False,trials=0)
+  # #50% Determnistic:
+  #   run_mnist_maze(0.5,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
+   # run_mnist_maze(0.5,EBU=False,stochastic=False,display=True,NSTEP=True,trials=0)
+  #   run_mnist_maze(0.5,EBU=False,stochastic=False,display=False,trials=0)
 
-  #20% Determnistic:
-    run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,NSTEP=True,trials=0)
-    run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,trials=0)
-    run_mnist_maze(0.2,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
+  # #20% Determnistic:
+  #   run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,NSTEP=True,trials=0)
+  #   run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,trials=0)
+  #   run_mnist_maze(0.2,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
 
   #50% Stochastic
-    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,NSTEP=True,trials=0)
-    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,trials=0)
-    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.25,trials=0)
-    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.5,trials=0)
-    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.75,trials=0)
-    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=1.0,trials=0)
+
+    # run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=1.0,trials=20)
+    # run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.75,trials=20)
+    # run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.5,trials=20)
+    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.25,trials=23)
+    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,trials=20)
+    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,NSTEP=True,trials=20)  
 
 
