@@ -29,7 +29,7 @@ EXPLORATION_MIN = 0
 def run_mnist_maze(wall_density,EBU=False,stochastic=False,display=False,trials=0,EBU_VAL=None,NSTEP=False):
     trials = trials
     MEMORY_SIZE =  170 if EBU or NSTEP else 30000
-    while trials < 30:
+    while trials < 40:
       current_data = []
       environment = Maze(wall_density) if not stochastic else Maze_Stochastic(wall_density)
       
@@ -102,24 +102,25 @@ def run_mnist_maze(wall_density,EBU=False,stochastic=False,display=False,trials=
 if __name__ == "__main__":
 
   #TO RUN:
+  # #20% Determnistic:
+    run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,NSTEP=True,trials=0)
+    run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,trials=0)
+    run_mnist_maze(0.2,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
+
 
   # #50% Determnistic:
-  #   run_mnist_maze(0.5,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
-   # run_mnist_maze(0.5,EBU=False,stochastic=False,display=True,NSTEP=True,trials=0)
-  #   run_mnist_maze(0.5,EBU=False,stochastic=False,display=False,trials=0)
+    run_mnist_maze(0.5,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
+    run_mnist_maze(0.5,EBU=False,stochastic=False,display=True,NSTEP=True,trials=0)
+    run_mnist_maze(0.5,EBU=False,stochastic=False,display=False,trials=0)
 
-  # #20% Determnistic:
-  #   run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,NSTEP=True,trials=0)
-  #   run_mnist_maze(0.2,EBU=False,stochastic=False,display=False,trials=0)
-  #   run_mnist_maze(0.2,EBU=True,stochastic=False,display=False,EBU_VAL=1.0,trials=0)
 
   #50% Stochastic
 
-    # run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=1.0,trials=20)
-    # run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.75,trials=20)
-    # run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.5,trials=20)
-    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.25,trials=23)
-    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,trials=20)
-    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,NSTEP=True,trials=20)  
+    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=1.0,trials=0)
+    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.75,trials=0)
+    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.5,trials=0)
+    run_mnist_maze(0.5,EBU=True,stochastic=True,display=False,EBU_VAL=0.25,trials=0)
+    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,trials=0)
+    run_mnist_maze(0.5,EBU=False,stochastic=True,display=False,NSTEP=True,trials=0)  
 
 
