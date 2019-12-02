@@ -1,8 +1,8 @@
 README
 
-@authors
+@authors 
 
 NeurIPS reproducibility challenge: Sample-Efficient Deep Reinforcement Learning via Episodic Backward Update
 https://arxiv.org/pdf/1805.12375.pdf
 
-Link to Documentation <report>
+The code used to reproduce each figure is stored in the corresponding directory.
