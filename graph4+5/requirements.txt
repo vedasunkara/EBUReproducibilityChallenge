@@ -12,7 +12,7 @@ google-pasta==0.1.8
 grpcio==1.25.0
 gym==0.15.4
 h5py==2.10.0
-html5lib==0.9999999
+html5lib==0.99999999
 imageio==2.6.1
 joblib==0.13.2
 Keras-Applications==1.0.8
